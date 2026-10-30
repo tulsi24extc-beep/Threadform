@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { api } from '../api'
+import { getDemoUser, isDemoAuth, logoutDemoUser } from '../demoAuth'
 import type { CartItem, User } from '../types'
 import { StoreContext } from './store'
 
@@ -13,12 +14,13 @@ function readCart(): CartItem[] {
 }
 
 export function StoreProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null)
-  const [authLoading, setAuthLoading] = useState(true)
+  const [user, setUser] = useState<User | null>(() => isDemoAuth ? getDemoUser() : null)
+  const [authLoading, setAuthLoading] = useState(!isDemoAuth)
   const [cart, setCart] = useState<CartItem[]>(readCart)
   const [toast, setToastMessage] = useState('')
 
   useEffect(() => {
+    if (isDemoAuth) return
     api.me().then(({ user: currentUser }) => setUser(currentUser)).catch(() => setUser(null)).finally(() => setAuthLoading(false))
   }, [])
 
@@ -41,6 +43,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const clearCart = useCallback(() => setCart([]), [])
   const signIn = useCallback((signedInUser: User) => setUser(signedInUser), [])
   const signOut = useCallback(async () => {
+    if (isDemoAuth) {
+      logoutDemoUser()
+      setUser(null)
+      return
+    }
     await api.logout()
     setUser(null)
   }, [])

@@ -66,7 +66,7 @@ The [Render Blueprint](./render.yaml) deploys the frontend and API together on o
 4. Open the public `onrender.com` URL shown for the service. Use this URL for login and registration on any device. The free web service may take a little time to wake after inactivity.
 5. To enable sandbox payments later, add Razorpay **test** credentials as private `RAZORPAY_KEY_ID` and `RAZORPAY_KEY_SECRET` environment variables in Render.
 
-The GitHub Pages URL (`https://tulsi24extc-beep.github.io/Threadform/`) is a static storefront preview only; GitHub Pages cannot run the API. Account, order, and checkout features require the Render deployment and Atlas database. The authentication cookie is HTTP-only, secure in production, and SameSite=Lax.
+The GitHub Pages URL (`https://tulsi24extc-beep.github.io/Threadform/`) includes **demo-only browser-local login** so the sign-up and login flow can be tried without a backend. Demo accounts exist only in the current browser and device, are not secure customer accounts, and cannot access real orders or checkout. Use a unique test password. For real accounts across devices, use the Render deployment and Atlas database. The production authentication cookie is HTTP-only, secure, and SameSite=Lax.
 
 The product catalog and prices are intentionally duplicated in the frontend display data and server-side checkout allowlist: the server remains the pricing authority. Update both when adding products.
 

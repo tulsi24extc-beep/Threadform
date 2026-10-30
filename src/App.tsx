@@ -6,6 +6,7 @@ import {
 } from 'lucide-react'
 import { api } from './api'
 import { formatPrice, products, publicAsset } from './data'
+import { isDemoAuth, loginDemoUser, registerDemoUser } from './demoAuth'
 import { DesignCanvas } from './components/DesignCanvas'
 import { StoreProvider } from './context/StoreContext'
 import { useStore } from './context/store'
@@ -27,13 +28,14 @@ function AppFrame() {
   const [logoutOpen, setLogoutOpen] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
-  const [status, setStatus] = useState<'loading' | 'ready' | 'payments' | 'local' | 'local-ready' | 'database' | 'offline'>('loading')
+  const [status, setStatus] = useState<'loading' | 'ready' | 'payments' | 'local' | 'local-ready' | 'database' | 'offline' | 'demo'>(isDemoAuth ? 'demo' : 'loading')
   const cartCount = cart.reduce((total, item) => total + item.quantity, 0)
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' })
   }, [location.pathname])
   useEffect(() => {
+    if (isDemoAuth) return
     api.health().then((health) => setStatus(
       health.database === 'local'
         ? health.payment === 'configured' ? 'local-ready' : 'local'
@@ -78,13 +80,15 @@ function AppFrame() {
         </div>
       </header>
       {status !== 'ready' && status !== 'loading' && (
-        <div className={`system-banner ${status === 'offline' || status === 'database' || status === 'local' || status === 'local-ready' ? 'offline' : ''}`}>
+        <div className={`system-banner ${status === 'offline' || status === 'database' || status === 'local' || status === 'local-ready' || status === 'demo' ? 'offline' : ''}`}>
           {status === 'payments'
             ? <><LockKeyhole size={15} /> Shop and design are ready. Online checkout activates when Razorpay test keys are set in <code>server/.env</code>.</>
             : status === 'local'
               ? <><span className="status-dot" /> Local development mode: accounts and pending orders are stored on this machine. Add Razorpay test keys in <code>server/.env</code> to enable secure payment.</>
               : status === 'local-ready'
                 ? <><span className="status-dot" /> Local development mode: accounts and orders are stored on this machine. Razorpay checkout is configured for sandbox payments.</>
+              : status === 'demo'
+                ? <><span className="status-dot" /> Demo login only: accounts are saved in this browser and do not sync across devices. Do not reuse a real password; checkout and orders need a backend.</>
             : status === 'database'
               ? <><span className="status-dot" /> MongoDB is unavailable. Browsing and design work; account, order, and checkout features need MongoDB running.</>
               : <><span className="status-dot" /> API is unavailable. Browsing and design work; account, order, and checkout features need the local API running.</>}
@@ -243,7 +247,9 @@ function AuthPage() {
     const email = String(form.get('email') || '')
     const password = String(form.get('password') || '')
     try {
-      const result = register ? await api.register(name, email, password) : await api.login(email, password)
+      const result = isDemoAuth
+        ? { user: register ? await registerDemoUser(name, email, password) : await loginDemoUser(email, password) }
+        : register ? await api.register(name, email, password) : await api.login(email, password)
       signIn(result.user)
       navigate(redirect)
     } catch (reason) {
@@ -252,7 +258,7 @@ function AuthPage() {
       setBusy(false)
     }
   }
-  return <section className="auth-page"><div className="auth-image"><img src="https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=1000&q=85" alt="Soft cotton tee in a sunny studio" /><span>YOUR NEW<br />FAVOURITE TEE<br />IS ONE CLICK AWAY.</span></div><div className="auth-card"><span className="eyebrow"><span className="eyebrow-line" /> GOOD TO SEE YOU</span><h1>{register ? 'Let’s make it official.' : 'Welcome back.'}</h1><p>{register ? 'Create an account to keep your designs and orders close.' : 'Sign in and get back to making something yours.'}</p><div className="auth-tabs"><button className={!register ? 'active' : ''} onClick={() => { setRegister(false); setError('') }}>Log in</button><button className={register ? 'active' : ''} onClick={() => { setRegister(true); setError('') }}>Create account</button></div><form onSubmit={submit} className="form-stack" noValidate>{register && <label>Full name<input name="name" autoComplete="name" required minLength={2} placeholder="What should we call you?" /></label>}<label>Email address<input name="email" type="email" autoComplete="email" required placeholder="you@example.com" /></label><label>Password<input name="password" type="password" autoComplete={register ? 'new-password' : 'current-password'} required minLength={register ? 8 : 1} maxLength={72} placeholder={register ? 'At least 8 characters' : 'Your password'} /></label>{error && <p className="form-error" role="alert">{error}</p>}<button className="button button-dark full-button" disabled={busy}>{busy ? <><LoaderCircle className="spinner" size={17} /> Just a sec...</> : register ? <>Create your account <ArrowRight size={17} /></> : <>Log in <ArrowRight size={17} /></>}</button></form><p className="secure-note"><LockKeyhole size={13} /> Your details stay yours. Always.</p></div></section>
+  return <section className="auth-page"><div className="auth-image"><img src="https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=1000&q=85" alt="Soft cotton tee in a sunny studio" /><span>YOUR NEW<br />FAVOURITE TEE<br />IS ONE CLICK AWAY.</span></div><div className="auth-card"><span className="eyebrow"><span className="eyebrow-line" /> GOOD TO SEE YOU</span><h1>{register ? 'Let’s make it official.' : 'Welcome back.'}</h1><p>{register ? 'Create an account to keep your designs and orders close.' : 'Sign in and get back to making something yours.'}</p><div className="auth-tabs"><button className={!register ? 'active' : ''} onClick={() => { setRegister(false); setError('') }}>Log in</button><button className={register ? 'active' : ''} onClick={() => { setRegister(true); setError('') }}>Create account</button></div><form onSubmit={submit} className="form-stack" noValidate>{register && <label>Full name<input name="name" autoComplete="name" required minLength={2} placeholder="What should we call you?" /></label>}<label>Email address<input name="email" type="email" autoComplete="email" required placeholder="you@example.com" /></label><label>Password<input name="password" type="password" autoComplete={register ? 'new-password' : 'current-password'} required minLength={register ? 8 : 1} maxLength={72} placeholder={register ? 'At least 8 characters' : 'Your password'} /></label>{error && <p className="form-error" role="alert">{error}</p>}<button className="button button-dark full-button" disabled={busy}>{busy ? <><LoaderCircle className="spinner" size={17} /> Just a sec...</> : register ? <>Create your account <ArrowRight size={17} /></> : <>Log in <ArrowRight size={17} /></>}</button></form><p className="secure-note"><LockKeyhole size={13} /> {isDemoAuth ? 'Demo account is stored only in this browser. Use a unique password.' : 'Your details stay yours. Always.'}</p></div></section>
 }
 
 function CartPage() {
