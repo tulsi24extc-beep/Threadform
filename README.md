@@ -58,9 +58,15 @@ The server creates a Razorpay order using prices from its own catalog, records a
 
 ## Deployment
 
-Deploy the Vite `dist/` output and the compiled API (`npm --prefix server run build`, then `npm --prefix server start`) with a managed MongoDB database. Configure `MONGODB_URI`, a strong `JWT_SECRET`, `NODE_ENV=production`, `CLIENT_ORIGIN`, and Razorpay credentials in the API host's secret manager. Serve the frontend and API on the same site, or configure a same-site reverse proxy for `/api`; the authentication cookie is HTTP-only, secure in production, and SameSite=Lax. If hosting on distinct sites, design and validate a deliberate cross-site cookie and CSRF strategy before deployment.
+The [Render Blueprint](./render.yaml) deploys the frontend and API together on one origin, so HTTP-only authentication cookies work across pages. It requires a MongoDB Atlas connection string; production startup fails rather than silently running without account storage.
 
-The static storefront is also configured for GitHub Pages deployment using the workflow in `.github/workflows/deploy-pages.yml`. After pushing to `main`, enable **Settings → Pages → GitHub Actions** in the repository. The storefront URL is `https://tulsi24extc-beep.github.io/Threadform/`. GitHub Pages only hosts the frontend: account, order, and payment features require a separately hosted API and database.
+1. Create a MongoDB Atlas database and a database user. Allow connections from the Render service, and copy the Atlas connection string.
+2. In Render, choose **New → Blueprint**, connect `tulsi24extc-beep/Threadform`, and deploy the repository's `render.yaml`.
+3. When prompted, enter the Atlas connection string as `MONGODB_URI`. Render generates the private `JWT_SECRET` automatically. Do not put either value in source control or the frontend.
+4. Open the public `onrender.com` URL shown for the service. Use this URL for login and registration on any device. The free web service may take a little time to wake after inactivity.
+5. To enable sandbox payments later, add Razorpay **test** credentials as private `RAZORPAY_KEY_ID` and `RAZORPAY_KEY_SECRET` environment variables in Render.
+
+The GitHub Pages URL (`https://tulsi24extc-beep.github.io/Threadform/`) is a static storefront preview only; GitHub Pages cannot run the API. Account, order, and checkout features require the Render deployment and Atlas database. The authentication cookie is HTTP-only, secure in production, and SameSite=Lax.
 
 The product catalog and prices are intentionally duplicated in the frontend display data and server-side checkout allowlist: the server remains the pricing authority. Update both when adding products.
 

@@ -20,7 +20,7 @@ const allowedOrigin = process.env.CLIENT_ORIGIN || 'http://localhost:5173'
 const jwtSecret = process.env.JWT_SECRET
 if (isProduction && (!jwtSecret || jwtSecret.length < 32)) throw new Error('JWT_SECRET must be at least 32 characters in production.')
 
-app.use(cors({ origin: allowedOrigin, credentials: true }))
+if (!isProduction) app.use(cors({ origin: allowedOrigin, credentials: true }))
 app.use(express.json({ limit: '100kb' }))
 app.use(cookieParser())
 
@@ -367,6 +367,20 @@ app.get('/api/orders', requireAuthStorage, requireAuth, async (req: AuthRequest,
   }
 })
 
+if (isProduction) {
+  const clientDist = resolve(dirname(fileURLToPath(import.meta.url)), '../../dist')
+  app.use(express.static(clientDist))
+  app.use((req, res, next) => {
+    if (req.path === '/api' || req.path.startsWith('/api/')) {
+      return res.status(404).json({ message: 'API route not found.' })
+    }
+    if (req.method !== 'GET' && req.method !== 'HEAD') return next()
+    res.sendFile(resolve(clientDist, 'index.html'), (error) => {
+      if (error) next(error)
+    })
+  })
+}
+
 app.use((error: unknown, _req: Request, res: Response, _next: NextFunction) => {
   console.error('API error:', error)
   res.status(500).json({ message: 'The server could not complete your request. Please try again.' })
@@ -374,12 +388,16 @@ app.use((error: unknown, _req: Request, res: Response, _next: NextFunction) => {
 
 async function start() {
   const mongoUri = process.env.MONGODB_URI
+  if (!mongoUri && isProduction) {
+    throw new Error('MONGODB_URI is required in production.')
+  }
   if (mongoUri) {
     try {
       await mongoose.connect(mongoUri)
       console.info('Connected to MongoDB.')
     } catch (error) {
       console.error('MongoDB connection failed:', error)
+      if (isProduction) throw error
     }
   } else {
     console.warn('MONGODB_URI is not configured. Enabling local development account storage; orders and payments require MongoDB.')
