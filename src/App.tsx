@@ -5,7 +5,7 @@ import {
   Camera, LoaderCircle, LockKeyhole, Menu, Minus, Plus, ShoppingBag, Sparkles, Star, Trash2, Truck, X,
 } from 'lucide-react'
 import { api } from './api'
-import { formatPrice, products } from './data'
+import { formatPrice, products, publicAsset } from './data'
 import { DesignCanvas } from './components/DesignCanvas'
 import { StoreProvider } from './context/StoreContext'
 import { useStore } from './context/store'
@@ -123,7 +123,7 @@ function HomePage() {
           <div className="hero-note"><div className="avatar-stack"><span>M</span><span>A</span><span>J</span></div><div><strong>Made by you, worn by you</strong><small>Join 2,400+ happy tee-makers</small></div></div>
         </div>
         <div className="hero-visual">
-          <img src="/images/hero.jpg" alt="Friends wearing relaxed, everyday t-shirts" />
+          <img src={publicAsset('images/hero.jpg')} alt="Friends wearing relaxed, everyday t-shirts" />
           <div className="hero-sticker"><span>THE PERFECT<br />BLANK CANVAS</span><ArrowDown size={17} /></div>
           <div className="hero-image-caption"><span>01 / 04</span><span>THE EVERYDAY EDIT</span></div>
         </div>
@@ -137,7 +137,7 @@ function HomePage() {
         <div className="product-grid">{products.slice(0, 3).map((product, index) => <ProductCard key={product.id} product={product} index={index} />)}</div>
       </section>
       <section className="custom-banner">
-        <div className="custom-photo"><img src="/images/custom-style.jpg" alt="Fashion-forward custom tee styling" /></div>
+        <div className="custom-photo"><img src={publicAsset('images/custom-style.jpg')} alt="Fashion-forward custom tee styling" /></div>
         <div className="custom-copy"><span className="eyebrow"><span className="eyebrow-line" /> YOUR IDEA, YOUR TEE</span><h2>Be the designer<br />you wish you had.</h2><p>Add a little something, change a little something. Make a tee that feels like it could only be yours.</p><Link className="button button-light" to="/customize/classic-crew">Start creating <ArrowRight size={17} /></Link><span className="custom-step">NO DESIGN DEGREE REQUIRED <Sparkles size={14} /></span></div>
       </section>
       <section className="section testimonial"><span className="eyebrow"><span className="eyebrow-line" /> WORD ON THE STREET</span><div className="testimonial-stars" aria-label="5 out of 5 stars"><Star /><Star /><Star /><Star /><Star /></div><blockquote>“It’s the first custom tee I’ve made that actually feels like something I’d buy in a store. The fit is <em>so good.</em>”</blockquote><div className="testimonial-byline"><span>R</span><div><strong>Rhea M.</strong><small>Verified tee-maker</small></div></div></section>

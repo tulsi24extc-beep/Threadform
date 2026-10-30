@@ -1,5 +1,7 @@
 import type { Product } from './types'
 
+export const publicAsset = (path: string) => `${import.meta.env.BASE_URL}${path}`
+
 export const products: Product[] = [
   {
     id: 'classic-crew',
@@ -8,7 +10,7 @@ export const products: Product[] = [
     price: 799,
     rating: '4.9',
     colors: ['#f5f2ea', '#191919', '#9ea8a1', '#e3bdb2'],
-    image: '/images/everyday-tee.jpg',
+    image: publicAsset('images/everyday-tee.jpg'),
     badge: 'BEST SELLER',
   },
   {
@@ -18,7 +20,7 @@ export const products: Product[] = [
     price: 1099,
     rating: '4.8',
     colors: ['#ddd8ce', '#222222', '#777f96', '#c4b1a1'],
-    image: '/images/heavyweight-tee.jpg',
+    image: publicAsset('images/heavyweight-tee.jpg'),
     badge: 'NEW',
   },
   {
@@ -28,7 +30,7 @@ export const products: Product[] = [
     price: 899,
     rating: '4.9',
     colors: ['#e9e4dc', '#272525', '#b6c1ca', '#e5c4ba'],
-    image: '/images/relaxed-tee.jpg',
+    image: publicAsset('images/relaxed-tee.jpg'),
   },
   {
     id: 'organic-cotton',
@@ -37,7 +39,7 @@ export const products: Product[] = [
     price: 999,
     rating: '5.0',
     colors: ['#e3ddd1', '#20211e', '#93a18f', '#cbb4a7'],
-    image: '/images/organic-tee.jpg',
+    image: publicAsset('images/organic-tee.jpg'),
     badge: 'MADE BETTER',
   },
 ]
